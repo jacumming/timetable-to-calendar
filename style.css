@@ -9,8 +9,8 @@
   --muted: #71717a;
   --line: rgba(24, 24, 27, 0.1);
   --soft: #f2eff4;
-  --accent: #4b116f;
-  --accent-hover: #35104f;
+  --accent: #2563eb;
+  --accent-hover: #1d4ed8;
   --danger: #b42318;
   --shadow: 0 34px 90px rgba(24, 24, 27, 0.12);
 
@@ -24,9 +24,9 @@
 body {
   margin: 0;
   min-height: 100vh;
-  background:
+/*  background:
     radial-gradient(circle at 50% -10%, rgba(75, 17, 111, 0.14), transparent 34rem),
-    linear-gradient(180deg, #fbfafc 0%, var(--bg) 100%);
+    linear-gradient(180deg, #fbfafc 0%, var(--bg) 100%);*/
   color: var(--text);
 }
 
@@ -67,9 +67,9 @@ button:disabled {
 h1 {
   margin: 0;
   font-size: clamp(2.25rem, 6vw, 4.8rem);
-  font-weight: 800;
+  font-weight: 700;
   line-height: 0.88;
-  letter-spacing: -0.075em;
+  letter-spacing: -0.035em;
 }
 
 .converter-card {
