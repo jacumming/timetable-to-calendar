@@ -75,24 +75,25 @@ const dayOffsets = {
   saturday: 6,
 };
 
+const defaultTeachingWeekRanges = [
+  { term: "Michaelmas", startDurhamWeek: 12, endDurhamWeek: 21, startTeachingWeek: 1 },
+  { term: "Epiphany", startDurhamWeek: 26, endDurhamWeek: 35, startTeachingWeek: 11 },
+  { term: "Easter", startDurhamWeek: 41, endDurhamWeek: 49, startTeachingWeek: 21 },
+];
+
 const fallbackTeachingWeekConfig = {
   years: {
     "2026-27": {
-      label: "2026-27",
+      label: "2026-27 fallback",
       week0Start: "2026-07-13",
-      teachingWeeks: [12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 41, 42, 43, 44, 45, 46, 47, 48, 49],
-      teachingWeekRanges: [
-        { term: "Michaelmas", startDurhamWeek: 12, endDurhamWeek: 21, startTeachingWeek: 1 },
-        { term: "Epiphany", startDurhamWeek: 26, endDurhamWeek: 35, startTeachingWeek: 11 },
-        { term: "Easter", startDurhamWeek: 41, endDurhamWeek: 49, startTeachingWeek: 21 },
-      ],
       termEnds: {
-        michaelmas: "2026-12-18",
+        michaelmas: "2026-12-11",
         epiphany: "2027-03-19",
         easter: "2027-06-25",
       },
     },
   },
+
   moduleShortNames: {
     "Statistical Inference Ii": "SI2",
     "Statistical Inference II": "SI2",
@@ -127,6 +128,15 @@ async function init() {
 }
 
 async function loadTeachingWeekConfig() {
+  if (window.location.protocol === "file:") {
+    teachingWeekConfig = fallbackTeachingWeekConfig;
+    teachingWeekConfigLoadedFromJson = false;
+
+    console.warn("Running from file://. Using embedded fallback teaching-week config.");
+
+    return;
+  }
+
   try {
     const response = await fetch("teaching-weeks.json", { cache: "no-store" });
 
@@ -156,9 +166,16 @@ async function loadTeachingWeekConfig() {
     };
 
     teachingWeekConfigLoadedFromJson = true;
+
+    console.info("Teaching week config loaded from teaching-weeks.json", {
+      years: Object.keys(teachingWeekConfig.years),
+      moduleShortNames: Object.keys(teachingWeekConfig.moduleShortNames),
+    });
   } catch (error) {
     teachingWeekConfig = fallbackTeachingWeekConfig;
     teachingWeekConfigLoadedFromJson = false;
+
+    console.warn("Using embedded fallback teaching-week config", error);
 
     showMessage(
       `Could not load teaching-weeks.json. Using embedded fallback teaching-week data. ${error.message}`,
@@ -435,6 +452,13 @@ function diagnoseDurhamTimetable(doc) {
   return { errors, warnings };
 }
 
+function buildAcademicYearConfig(yearConfig) {
+  return {
+    ...yearConfig,
+    teachingWeekRanges: defaultTeachingWeekRanges,
+  };
+}
+
 function resolveAcademicYear(doc) {
   const detectedKey = detectAcademicYearKey(doc);
   const years = teachingWeekConfig.years;
@@ -442,7 +466,7 @@ function resolveAcademicYear(doc) {
   if (detectedKey && years[detectedKey]) {
     return {
       key: detectedKey,
-      config: years[detectedKey],
+      config: buildAcademicYearConfig(years[detectedKey]),
       usedFallbackYear: false,
       detectedKey,
     };
@@ -452,7 +476,7 @@ function resolveAcademicYear(doc) {
 
   return {
     key: fallbackKey,
-    config: years[fallbackKey],
+    config: buildAcademicYearConfig(years[fallbackKey]),
     usedFallbackYear: true,
     detectedKey,
   };
