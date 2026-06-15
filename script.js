@@ -1,10 +1,38 @@
-
 const activityTypeNames = {
   LECT: "Lecture",
   TUT: "Tutorial",
   PRAC: "Practical",
   PROB: "Problems Class",
-  PROBA: "Problems Class",
+  WORK: "Workshop",
+  EXAM: "Exam",
+  PRES: "Presentation",
+};
+
+const moduleShortNames = {
+  "Statistics I": "Stats I",
+  "Statistical Inference II": "SI2",
+  "Data Science and Statistical Modelling II": "DSSM2",
+  "Operations Research III": "OR3",
+  "Advanced Statistical Modelling III": "ASM3",
+  "Bayesian Computation and Modelling III": "BCM3",
+  "Machine Learning and Neural Networks III": "MLNN3",
+  "Internship Project III": "IP",
+  "Data Exploration, Visualization and Unsupervised Learning": "DEVUL",
+  "Introduction to Mathematics for Data Science": "IMDS",
+  "Deep Learning and Artificial Intelligence": "DLAI",
+  "Introduction to Statistics for Data Science": "ISDS",
+  "Machine Learning": "ML",
+  "High-Dimensional Statistics": "HDS",
+  "Uncertainty Quantification IV": "UQ4",
+  "Spatio-Temporal Statistics": "STS",
+  "Multilevel Modelling": "MM",
+  "Nonparametric statistics IV": "NS4",
+  "Clinical Trials": "CT4",
+  "High Dimensional Statistics and Deep Learning IV": "HDSDL4",
+  "Uncertainty Quantification and Clinical Trials IV": "UQCT4",
+  "Advanced Statistical and Machine Learning: Foundations and Unsupervised Learning": "ASML F&UL",
+  "Advanced Statistics and Machine Learning: Regression and Classification": "ASML R&C",
+  "Models and Methods for Health Data Science": "MMHDS",
 };
 
 const namingModes = {
@@ -97,13 +125,9 @@ const fallbackTeachingWeekConfig = {
       },
     },
   },
-
-  moduleShortNames: {
-    "Statistical Inference Ii": "SI2",
-    "Statistical Inference II": "SI2",
-    "Machine Learning": "Machine Learning",
-  },
 };
+
+
 
 let teachingWeekConfig = fallbackTeachingWeekConfig;
 let teachingWeekConfigLoadedFromJson = false;
@@ -198,18 +222,13 @@ async function loadTeachingWeekConfig() {
       years: {
         ...fallbackTeachingWeekConfig.years,
         ...loadedConfig.years,
-      },
-      moduleShortNames: {
-        ...fallbackTeachingWeekConfig.moduleShortNames,
-        ...(loadedConfig.moduleShortNames || {}),
-      },
+      }
     };
 
     teachingWeekConfigLoadedFromJson = true;
 
     console.info("Teaching week config loaded from teaching-weeks.json", {
       years: Object.keys(teachingWeekConfig.years),
-      moduleShortNames: Object.keys(teachingWeekConfig.moduleShortNames),
     });
   } catch (error) {
     teachingWeekConfig = fallbackTeachingWeekConfig;
@@ -369,9 +388,23 @@ function extractTimetable(source) {
     );
   }
 
+  function normaliseActivityCode(code) {
+    const value = String(code || "").toUpperCase().trim();
+
+    if (activityTypeNames[value]) {
+      return value;
+    }
+
+    const withoutSingleLetterSuffix = value.replace(/[A-Z]$/, "");
+
+    return activityTypeNames[withoutSingleLetterSuffix]
+      ? withoutSingleLetterSuffix
+      : value;
+  }
+
   const activities = extractDurhamTimetableActivities(doc, academicYear.config);
   activities
-    .filter((activity) => !activityTypeNames[String(activity.activityCode || "").toUpperCase()])
+    .filter((activity) => !activityTypeNames[normaliseActivityCode(activity.activityCode)])
     .forEach((activity) => {
       diagnostics.warnings.push(`Unknown activity code: ${activity.activityCode}`);
     });
@@ -578,7 +611,7 @@ function createDurhamActivity({ parsed, day, startTime, durationMinutes, academi
 
     moduleCode: codeParts.moduleCode,
     moduleName: parsed.title,
-    shortModuleName: teachingWeekConfig.moduleShortNames[parsed.title] || "",
+    shortModuleName: moduleShortNames[parsed.title] || "",
 
     activityCode: codeParts.activityCode,
     activityType: getActivityTypeName(codeParts.activityCode),
@@ -644,7 +677,9 @@ function buildEventTitle(activity, namingMode = namingModes.short) {
 }
 
 function getActivityGroupLabel(activity) {
-  if (!["TUT", "PRAC"].includes(String(activity.activityCode || "").toUpperCase())) {
+ const groupableTypes = ["TUT", "PRAC", "WORK", "PRES"];
+
+  if (!groupableTypes.includes(normaliseActivityCode(activity.activityCode))) {
     return "";
   }
 
