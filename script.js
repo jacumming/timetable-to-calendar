@@ -30,7 +30,8 @@ const els = {
   eventsTable: document.querySelector("#eventsTable"),
   eventCount: document.querySelector("#eventCount"),
   summaryText: document.querySelector("#summaryText"),
-  message: document.querySelector("#message"),
+  tabButtons: document.querySelectorAll("[data-tab-target]"),
+  tabContents: document.querySelectorAll(".tab-content"),
   downloadWeeksButton: document.querySelector("#downloadWeeksButton"),
   includeTermEnds: document.querySelector("#includeTermEnds"),
   namingMode: document.querySelector("#namingMode"),
@@ -119,7 +120,9 @@ async function init() {
   els.downloadButton.addEventListener("click", downloadCalendar);
   els.downloadWeeksButton.addEventListener("click", downloadTeachingWeeksCalendar);
   els.clearButton.addEventListener("click", clearAll);
-
+  els.tabButtons.forEach((button) => {
+    button.addEventListener("click", () => toggleTab(button.dataset.tabTarget));
+  });
   els.namingMode.addEventListener("change", () => {
     state.namingMode = els.namingMode.value;
     if (state.activities.length > 0) {
@@ -131,6 +134,33 @@ async function init() {
     }
   });
   renderEvents();
+}
+
+function toggleTab(targetId) {
+  const target = document.querySelector(`#${targetId}`);
+  const isOpen = target && !target.hidden;
+
+  els.tabContents.forEach((panel) => {
+    panel.hidden = true;
+  });
+
+  els.tabButtons.forEach((button) => {
+    button.classList.remove("is-active");
+  });
+
+  if (!target || isOpen) {
+    return;
+  }
+
+  target.hidden = false;
+
+  const activeButton = Array.from(els.tabButtons).find(
+    (button) => button.dataset.tabTarget === targetId,
+  );
+
+  if (activeButton) {
+    activeButton.classList.add("is-active");
+  }
 }
 
 async function loadTeachingWeekConfig() {
@@ -298,13 +328,7 @@ function extractFromCurrentSource() {
   );
 
   showMessage(
-    [
-      `Detected academic year ${state.academicYearKey}.`,
-      `Activities parsed: ${result.activities.length}.`,
-      `Occurrences generated: ${result.events.length}.`,
-      `Grouped events: ${eventGroups.length}.`,
-      result.warnings.length > 0 ? `Warnings: ${result.warnings.length}.` : "Warnings: 0.",
-    ].join(" "),
+    `Success: ${result.events.length} events found and ${eventGroups.length} grouped calendar entries generated. Click Preview to review.`,
     "note",
   );
 }
@@ -834,16 +858,16 @@ function renderEvents() {
   const eventGroups = getPreviewEventGroups(state.events);
 
   els.eventCount.textContent = String(eventGroups.length);
+  els.eventCount.hidden = true;
   els.downloadButton.disabled = state.events.length === 0;
   els.downloadWeeksButton.disabled = !state.academicYearKey;
 
   if (eventGroups.length === 0) {
-    els.summaryText.textContent = "No timetable entries have been extracted yet.";
+    els.summaryText.textContent = "Paste or upload a timetable to begin.";
     els.eventsTable.innerHTML = '<tr class="empty-row"><td colspan="5">Paste a timetable and extract entries to begin.</td></tr>';
     return;
   }
 
-  els.summaryText.textContent = `${eventGroups.length} grouped event${eventGroups.length === 1 ? "" : "s"} ready for calendar export.`;
   els.eventsTable.innerHTML = "";
 
   eventGroups.forEach((group) => {
@@ -1350,15 +1374,13 @@ function clearAll() {
 }
 
 function showMessage(text, type = "error") {
-  els.message.textContent = text;
-  els.message.hidden = false;
-  els.message.classList.toggle("is-note", type === "note");
+  els.summaryText.textContent = text;
+  els.summaryText.classList.toggle("is-error", type !== "note");
 }
 
 function clearMessage() {
-  els.message.hidden = true;
-  els.message.textContent = "";
-  els.message.classList.remove("is-note");
+  els.summaryText.textContent = "Paste or upload a timetable to begin.";
+  els.summaryText.classList.remove("is-error");
 }
 
 function cleanText(value) {

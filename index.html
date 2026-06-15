@@ -1,133 +1,103 @@
-<!doctype html>
-<html lang="en">
-
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Timetable to Calendar</title>
-  <link rel="stylesheet" href="style.css">
-</head>
-
 <body>
-  <main class="app-shell">
-    <header class="masthead">
-      <div>
-        <p class="eyebrow">Static calendar converter</p>
-        <h1>Timetable to Calendar</h1>
-        <p>Paste or upload a saved Durham timetable HTML file.</p>
-      </div>
-      <div class="status-card" aria-live="polite">
-        <span class="status-label">Events ready</span>
-        <strong id="eventCount">0</strong>
-      </div>
+
+  <head>
+    <link rel="stylesheet" href="style.css">
+  </head>
+  <main class="app">
+    <header class="hero">
+      <h1>Timetable to Calendar</h1>
     </header>
 
-    <section class="panel source-panel" aria-labelledby="sourceTitle">
-      <div class="section-heading">
-        <div>
-          <h2 id="sourceTitle">Source</h2>
-          <p>Paste or upload a saved Durham timetable HTML file.</p>
-        </div>
+    <section class="converter-card">
+      <div id="dropZone" class="drop-zone">
+        <textarea id="htmlInput" spellcheck="false" placeholder="Paste or drop Durham timetable HTML"></textarea>
+        <div class="drop-hint" aria-hidden="true">Drop timetable file</div>
       </div>
 
-      <div>
-        <label for="htmlInput">Pasted Durham timetable HTML</label>
-        <div id="dropZone" class="drop-zone">
-          <textarea id="htmlInput" spellcheck="false"
-            placeholder="<table>... Durham timetable HTML ...</table>"></textarea>
-          <div class="drop-hint" aria-hidden="true">Drop an HTML file here</div>
-        </div>
-        <div class="file-row">
-          <label for="htmlFileInput">Saved HTML file</label>
-          <input id="htmlFileInput" type="file" accept=".html,.htm,text/html">
-        </div>
+      <div class="action-row">
+        <input id="htmlFileInput" class="file-input" type="file" accept=".html,.htm,text/html">
+        <label class="button secondary" for="htmlFileInput">Choose file</label>
+        <button id="extractButton" class="button primary" type="button">Extract timetable</button>
+        <button id="clearButton" class="button ghost" type="button">Clear</button>
       </div>
 
-      <section class="panel settings-panel" aria-labelledby="settingsTitle">
-        <div class="section-heading compact">
-          <div>
-            <h2 id="settingsTitle">Extraction</h2>
-            <p>Extract timetable activities and export them as calendar events.</p>
-          </div>
+      <section class="output" aria-live="polite">
+        <p id="summaryText">Paste or upload a timetable to begin.</p>
+        <strong id="eventCount" hidden>0</strong>
+
+        <button id="downloadButton" class="button primary download" type="button" disabled>
+          Download calendar
+        </button>
+      </section>
+
+      <section class="tab-panel">
+        <div class="tabs" role="tablist" aria-label="Additional tools">
+          <button class="tab-button" type="button" data-tab-target="optionsPanel">Options</button>
+          <button class="tab-button" type="button" data-tab-target="previewPanel">Preview</button>
         </div>
 
-        <div class="field-grid">
-          <div class="field">
-            <label for="calendarName">Calendar name</label>
-            <input id="calendarName" type="text" value="Imported timetable">
-          </div>
+        <div id="optionsPanel" class="tab-content" hidden>
+          <div class="options-grid">
+            <div class="field">
+              <label for="calendarName">Calendar name</label>
+              <input id="calendarName" type="text" value="Imported timetable">
+            </div>
 
-          <div class="field">
-            <label for="namingMode">Event names</label>
-            <select id="namingMode">
-              <option value="short" selected>Short module names</option>
-              <option value="full">Full module names</option>
-            </select>
-          </div>
+            <div class="field">
+              <label for="namingMode">Event names</label>
+              <select id="namingMode">
+                <option value="short" selected>Short module names</option>
+                <option value="full">Full module names</option>
+              </select>
+            </div>
 
-          <div class="field">
-            <label for="alertMinutes">Teaching event alert</label>
-            <select id="alertMinutes">
-              <option value="" selected>No alert</option>
-              <option value="5">5 minutes before</option>
-              <option value="10">10 minutes before</option>
-              <option value="15">15 minutes before</option>
-              <option value="30">30 minutes before</option>
-              <option value="60">1 hour before</option>
-            </select>
-          </div>
+            <div class="field">
+              <label for="alertMinutes">Teaching event alert</label>
+              <select id="alertMinutes">
+                <option value="" selected>No alert</option>
+                <option value="5">5 minutes before</option>
+                <option value="10">10 minutes before</option>
+                <option value="15">15 minutes before</option>
+                <option value="30">30 minutes before</option>
+                <option value="60">1 hour before</option>
+              </select>
+            </div>
 
-          <div class="field">
-            <label>
+            <label class="check-row">
               <input id="includeTermEnds" type="checkbox">
               Include term-end markers
             </label>
           </div>
+
+          <button id="downloadWeeksButton" class="button secondary" type="button" disabled>
+            Download teaching weeks calendar
+          </button>
         </div>
 
-        <div class="actions">
-          <button id="extractButton" class="primary-button" type="button">Extract Entries</button>
-          <button id="clearButton" class="ghost-button" type="button">Clear</button>
+        <div id="previewPanel" class="tab-content" hidden>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Title</th>
+                  <th>Weeks</th>
+                  <th>Time</th>
+                  <th>Location</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="eventsTable">
+                <tr class="empty-row">
+                  <td colspan="5">Extract a timetable to preview grouped events.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
       </section>
 
-      <section class="panel results-panel" aria-labelledby="resultsTitle">
-        <div class="section-heading">
-          <div>
-            <h2 id="resultsTitle">Preview</h2>
-            <p id="summaryText">No timetable entries have been extracted yet.</p>
-          </div>
-          <div class="actions">
-            <button id="downloadButton" class="primary-button" type="button" disabled>Download timetable .ics</button>
-            <button id="downloadWeeksButton" class="secondary-button" type="button">Download teaching weeks
-              .ics</button>
-          </div>
-        </div>
-
-        <div id="message" class="message" hidden></div>
-
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Title</th>
-                <th>Date</th>
-                <th>Time</th>
-                <th>Location</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody id="eventsTable">
-              <tr class="empty-row">
-                <td colspan="5">Paste a timetable and extract entries to begin.</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </section>
+    </section>
   </main>
 
   <script src="script.js"></script>
 </body>
-
-</html>
