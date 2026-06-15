@@ -36,6 +36,8 @@ const els = {
   includeTermEnds: document.querySelector("#includeTermEnds"),
   namingMode: document.querySelector("#namingMode"),
   alertMinutes: document.querySelector("#alertMinutes"),
+  output: document.querySelector("#output"),
+  previewTabButton: document.querySelector('[data-tab-target="previewPanel"]'),
 };
 
 const monthNames = {
@@ -134,6 +136,8 @@ async function init() {
     }
   });
   renderEvents();
+  els.downloadButton.hidden = true;
+  els.output.hidden = true;
 }
 
 function toggleTab(targetId) {
@@ -596,16 +600,37 @@ function createDurhamActivity({ parsed, day, startTime, durationMinutes, academi
 }
 
 function buildActivityDescription(activity, teachingWeekInfo) {
-  return [
-    `Module: ${activity.moduleName}`,
-    activity.moduleCode ? `Module Code: ${activity.moduleCode}` : "",
-    `Activity: ${activity.activityType}`,
-    getActivityGroupLabel(activity) ? `Group: ${getActivityGroupLabel(activity).replace(/[()]/g, "")}` : "",
-    activity.location ? `Room: ${activity.location}` : "",
-    activity.staff ? `Staff: ${activity.staff}` : "",
-    teachingWeekInfo.teachingWeek ? `Teaching Week: ${teachingWeekInfo.teachingWeek}` : "",
-    teachingWeekInfo.term ? `Term: ${teachingWeekInfo.term}` : "",
-  ].filter(Boolean).join("\n");
+  const group = getActivityGroupLabel(activity).replace(/[()]/g, "").trim();
+
+  const summaryParts = [
+    activity.moduleName,
+    activity.activityType,
+    group,
+  ].filter(Boolean);
+
+  const lines = [
+    `${summaryParts.join(" ")}${activity.location ? ` (${activity.location})` : ""}.`,
+  ];
+
+  if (teachingWeekInfo.teachingWeek) {
+    lines.push(`Teaching Week: ${teachingWeekInfo.teachingWeek}`);
+  }
+
+  const staff = splitStaffNames(activity.staff);
+
+  if (staff.length > 1) {
+    lines.push("");
+    lines.push(`Staff: ${staff.join("; ")}`);
+  }
+
+  return lines.join("\n");
+}
+
+function splitStaffNames(value) {
+  return String(value || "")
+    .split(/\s*,\s*(?=[A-Z][A-Za-z]*,?\s+(?:Dr|Prof|Professor|Mr|Mrs|Ms|Miss)\b|MATH[A-Z0-9]+)/)
+    .map((name) => name.trim())
+    .filter(Boolean);
 }
 
 function buildEventTitle(activity, namingMode = namingModes.short) {
@@ -856,11 +881,15 @@ function dedupeEvents(event, index, events) {
 
 function renderEvents() {
   const eventGroups = getPreviewEventGroups(state.events);
+  const hasEvents = state.events.length > 0;
 
   els.eventCount.textContent = String(eventGroups.length);
   els.eventCount.hidden = true;
-  els.downloadButton.disabled = state.events.length === 0;
+  els.downloadButton.disabled = !hasEvents;
+  els.downloadButton.hidden = !hasEvents;
+  els.output.hidden = !hasEvents && !els.summaryText.classList.contains("is-error");
   els.downloadWeeksButton.disabled = !state.academicYearKey;
+  els.previewTabButton.hidden = state.events.length === 0;
 
   if (eventGroups.length === 0) {
     els.summaryText.textContent = "Paste or upload a timetable to begin.";
@@ -1374,11 +1403,13 @@ function clearAll() {
 }
 
 function showMessage(text, type = "error") {
+  els.output.hidden = false;
   els.summaryText.textContent = text;
   els.summaryText.classList.toggle("is-error", type !== "note");
 }
 
 function clearMessage() {
+  els.output.hidden = true;
   els.summaryText.textContent = "Paste or upload a timetable to begin.";
   els.summaryText.classList.remove("is-error");
 }
