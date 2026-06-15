@@ -579,7 +579,6 @@ function buildActivityDescription(activity, teachingWeekInfo) {
     getActivityGroupLabel(activity) ? `Group: ${getActivityGroupLabel(activity).replace(/[()]/g, "")}` : "",
     activity.location ? `Room: ${activity.location}` : "",
     activity.staff ? `Staff: ${activity.staff}` : "",
-    activity.timetableCode ? `Timetable Entry: ${activity.timetableCode}` : "",
     teachingWeekInfo.teachingWeek ? `Teaching Week: ${teachingWeekInfo.teachingWeek}` : "",
     teachingWeekInfo.term ? `Term: ${teachingWeekInfo.term}` : "",
   ].filter(Boolean).join("\n");
@@ -1079,8 +1078,24 @@ function buildIcsGroupDescription(group) {
 
   return [
     removeWeekLines(first.description),
-    teachingWeeks.length > 0 ? `Teaching Weeks: ${formatWeekList(teachingWeeks)}` : "",
+    teachingWeeks.length > 0 ? `Teaching Weeks: ${formatWeekList(teachingWeeks)}${formatRecurrenceLabel(group)}` : "",
   ].filter(Boolean).join("\n");
+}
+
+function formatRecurrenceLabel(group) {
+  if (group.events.length <= 1 || !group.interval) {
+    return "";
+  }
+
+  if (group.interval === 1) {
+    return " (weekly)";
+  }
+
+  if (group.interval === 2) {
+    return " (fortnightly)";
+  }
+
+  return ` (every ${group.interval} weeks)`;
 }
 
 function removeWeekLines(description) {
@@ -1327,6 +1342,7 @@ function formatIcsDateOnly(date) {
 function clearAll() {
   els.htmlInput.value = "";
   els.htmlFileInput.value = "";
+  state.academicYearKey = "";
   state.activities = [];
   state.events = [];
   clearMessage();
