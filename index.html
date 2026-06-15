@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Timetable to Calendar</title>
+    <link rel="stylesheet" href="style.css">
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="masthead">
+        <div>
+          <p class="eyebrow">Static calendar converter</p>
+          <h1>Timetable to Calendar</h1>
+          <p class="lede">Paste timetable HTML or try a public URL, extract dated entries, preview them, then download a standard <code>.ics</code> file.</p>
+        </div>
+        <div class="status-card" aria-live="polite">
+          <span class="status-label">Events ready</span>
+          <strong id="eventCount">0</strong>
+        </div>
+      </header>
+
+      <section class="panel source-panel" aria-labelledby="sourceTitle">
+        <div class="section-heading">
+          <div>
+            <h2 id="sourceTitle">Source</h2>
+            <p>Use pasted HTML for the most reliable browser-only workflow. URL fetching depends on the source site allowing cross-origin reads.</p>
+          </div>
+          <div class="segmented-control" role="tablist" aria-label="Input type">
+            <button class="segment is-active" type="button" data-source-mode="html" role="tab" aria-selected="true">HTML</button>
+            <button class="segment" type="button" data-source-mode="url" role="tab" aria-selected="false">URL</button>
+          </div>
+        </div>
+
+        <div class="source-mode is-active" data-panel="html">
+          <label for="htmlInput">Pasted HTML or timetable text</label>
+          <div id="dropZone" class="drop-zone">
+            <textarea id="htmlInput" spellcheck="false" placeholder="<table>... or copied timetable text ...</table>"></textarea>
+            <div class="drop-hint" aria-hidden="true">Drop an HTML file here</div>
+          </div>
+          <div class="file-row">
+            <label for="htmlFileInput">Saved HTML file</label>
+            <input id="htmlFileInput" type="file" accept=".html,.htm,text/html">
+          </div>
+        </div>
+
+        <div class="source-mode" data-panel="url">
+          <label for="urlInput">Timetable URL</label>
+          <div class="inline-input">
+            <input id="urlInput" type="url" placeholder="https://example.edu/timetable">
+            <button id="fetchUrlButton" class="secondary-button" type="button">Fetch</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel settings-panel" aria-labelledby="settingsTitle">
+        <div class="section-heading compact">
+          <div>
+            <h2 id="settingsTitle">Extraction</h2>
+            <p>Dates found in the source win. These defaults fill gaps when a row only gives a day and time.</p>
+          </div>
+        </div>
+
+        <div class="field-grid">
+          <div class="field">
+            <label for="defaultDate">Default date</label>
+            <input id="defaultDate" type="date">
+          </div>
+          <div class="field">
+            <label for="defaultDuration">Default duration</label>
+            <select id="defaultDuration">
+              <option value="30">30 minutes</option>
+              <option value="45">45 minutes</option>
+              <option value="60" selected>1 hour</option>
+              <option value="90">1 hour 30</option>
+              <option value="120">2 hours</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="calendarName">Calendar name</label>
+            <input id="calendarName" type="text" value="Imported timetable">
+          </div>
+        </div>
+
+        <div class="actions">
+          <button id="extractButton" class="primary-button" type="button">Extract Entries</button>
+          <button id="clearButton" class="ghost-button" type="button">Clear</button>
+        </div>
+      </section>
+
+      <section class="panel results-panel" aria-labelledby="resultsTitle">
+        <div class="section-heading">
+          <div>
+            <h2 id="resultsTitle">Preview</h2>
+            <p id="summaryText">No timetable entries have been extracted yet.</p>
+          </div>
+          <button id="downloadButton" class="primary-button" type="button" disabled>Download .ics</button>
+        </div>
+
+        <div id="message" class="message" hidden></div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Title</th>
+                <th>Date</th>
+                <th>Time</th>
+                <th>Location</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="eventsTable">
+              <tr class="empty-row">
+                <td colspan="5">Paste a timetable and extract entries to begin.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+
+    <script src="script.js"></script>
+  </body>
+</html>

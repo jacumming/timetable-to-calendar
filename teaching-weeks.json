@@ -1,0 +1,24 @@
+{
+  "years": {
+    "2026-27": {
+      "label": "2026-27",
+      "week0Start": "2026-07-13",
+      "teachingWeeks": [12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 41, 42, 43, 44, 45, 46, 47, 48, 49],
+      "teachingWeekRanges": [
+        { "term": "Michaelmas", "startDurhamWeek": 12, "endDurhamWeek": 21, "startTeachingWeek": 1 },
+        { "term": "Epiphany", "startDurhamWeek": 26, "endDurhamWeek": 35, "startTeachingWeek": 11 },
+        { "term": "Easter", "startDurhamWeek": 41, "endDurhamWeek": 49, "startTeachingWeek": 21 }
+      ],
+      "termEnds": {
+        "michaelmas": "2026-12-18",
+        "epiphany": "2027-03-19",
+        "easter": "2027-06-25"
+      }
+    }
+  },
+  "moduleShortNames": {
+    "Statistical Inference Ii": "SI2",
+    "Statistical Inference II": "SI2",
+    "Machine Learning": "Machine Learning"
+  }
+}
