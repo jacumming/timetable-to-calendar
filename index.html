@@ -4,13 +4,18 @@
     <link rel="stylesheet" href="style.css">
   </head>
   <main class="app">
+    <button id="helpButton" class="help-button" type="button" aria-label="Open help">
+      ?
+    </button>
     <header class="hero">
       <h1>Timetable to Calendar</h1>
     </header>
 
     <section class="converter-card">
+
       <div id="dropZone" class="drop-zone">
-        <textarea id="htmlInput" spellcheck="false" placeholder="Paste or drop Durham timetable HTML from timetable.dur.ac.uk"></textarea>
+        <textarea id="htmlInput" spellcheck="false"
+          placeholder="Paste or drop Durham timetable HTML from timetable.dur.ac.uk"></textarea>
         <div class="drop-hint" aria-hidden="true">Drop timetable file</div>
       </div>
 
@@ -99,5 +104,37 @@
     </section>
   </main>
 
+  <div id="helpModal" class="modal-backdrop" hidden>
+    <section class="help-modal" role="dialog" aria-modal="true" aria-labelledby="helpTitle">
+      <button id="helpCloseButton" class="modal-close" type="button" aria-label="Close help">
+        &times;
+      </button>
+
+      <h2 id="helpTitle">Help</h2>
+
+      <h3>Importing a timetable</h3>
+      <ol>
+        <li>Open your <a href="https://timetable.dur.ac.uk/">Durham timetable</a>.</li>
+        <li>Save the page as HTML.</li>
+        <li>Upload the file, drag it into the converter, or paste the HTML.</li>
+        <li>Click Extract timetable.</li>
+      </ol>
+
+      <h3>Exporting to calendar</h3>
+      <ol>
+        <li>Review the preview if needed.</li>
+        <li>Click Download calendar.</li>
+        <li>Import the <code>.ics</code> file into Outlook, Google Calendar, Apple Calendar, or another calendar app.
+        </li>
+      </ol>
+
+      <h3>Notes</h3>
+      <ul>
+        <li>Weekly and fortnightly events are grouped where possible.</li>
+        <li>Locations are included in calendar entries.</li>
+        <li>Calendar alerts can be set in Options.</li>
+      </ul>
+    </section>
+  </div>
   <script src="script.js"></script>
 </body>

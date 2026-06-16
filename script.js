@@ -66,6 +66,9 @@ const els = {
   alertMinutes: document.querySelector("#alertMinutes"),
   output: document.querySelector("#output"),
   previewTabButton: document.querySelector('[data-tab-target="previewPanel"]'),
+  helpButton: document.querySelector("#helpButton"),
+  helpModal: document.querySelector("#helpModal"),
+  helpCloseButton: document.querySelector("#helpCloseButton"),
 };
 
 const monthNames = {
@@ -127,7 +130,24 @@ const fallbackTeachingWeekConfig = {
   },
 };
 
+function normaliseActivityCode(code) {
+  const value = String(code || "").toUpperCase().trim();
 
+  if (activityTypeNames[value]) {
+    return value;
+  }
+
+  const withoutSingleLetterSuffix = value.replace(/[A-Z]$/, "");
+
+  return activityTypeNames[withoutSingleLetterSuffix]
+    ? withoutSingleLetterSuffix
+    : value;
+}
+
+function getActivityTypeName(code) {
+  const normalisedCode = normaliseActivityCode(code);
+  return activityTypeNames[normalisedCode] || normalisedCode || "Activity";
+}
 
 let teachingWeekConfig = fallbackTeachingWeekConfig;
 let teachingWeekConfigLoadedFromJson = false;
@@ -159,6 +179,22 @@ async function init() {
       }
     }
   });
+  if (els.helpButton && els.helpModal && els.helpCloseButton) {
+    els.helpButton.addEventListener("click", openHelp);
+    els.helpCloseButton.addEventListener("click", closeHelp);
+
+    els.helpModal.addEventListener("click", (event) => {
+      if (event.target === els.helpModal) {
+        closeHelp();
+      }
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && !els.helpModal.hidden) {
+        closeHelp();
+      }
+    });
+  }
   renderEvents();
   els.downloadButton.hidden = true;
   els.output.hidden = true;
@@ -189,6 +225,16 @@ function toggleTab(targetId) {
   if (activeButton) {
     activeButton.classList.add("is-active");
   }
+}
+
+function openHelp() {
+  els.helpModal.hidden = false;
+  els.helpCloseButton.focus();
+}
+
+function closeHelp() {
+  els.helpModal.hidden = true;
+  els.helpButton.focus();
 }
 
 async function loadTeachingWeekConfig() {
@@ -677,7 +723,7 @@ function buildEventTitle(activity, namingMode = namingModes.short) {
 }
 
 function getActivityGroupLabel(activity) {
- const groupableTypes = ["TUT", "PRAC", "WORK", "PRES"];
+  const groupableTypes = ["TUT", "PRAC", "WORK", "PRES"];
 
   if (!groupableTypes.includes(normaliseActivityCode(activity.activityCode))) {
     return "";
@@ -697,11 +743,6 @@ function splitDurhamTimetableCode(value) {
     activityCode: parts[1] || "",
     activityNumber: parts[2] || "",
   };
-}
-
-function getActivityTypeName(activityCode) {
-  const normalized = String(activityCode || "").toUpperCase();
-  return activityTypeNames[normalized] || normalized || "Activity";
 }
 
 function createActivityId({ timetableCode, day, startTime, weekPattern }) {
